@@ -72,6 +72,7 @@ def get_data_history_order(request):
         
         recommend = recommend_products(itemsCartStr, suggest)
         print("\n -- Recommend -- ", recommend , "\n")
+        print("\n -- Recommend -- ", recommend , "\n")
         if len(recommend) == 0:
             json_String = json_util.dumps({"message": "Recommend not found", "status": 404})
             return JsonResponse(json_String, safe=False)
