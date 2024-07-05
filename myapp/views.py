@@ -64,16 +64,41 @@ def get_data_history_order(request):
         extracted_ids = extract_ids(itemHistoryOrder)
             
         suggest = apply_prefixspan(extracted_ids)
-        print("\n -- Suggest -- ", suggest , "\n")
+        print("\n -- Suggest -- ", suggest)
+        count = 0
         for i in extracted_ids:
-            print("\n" , i)
+            count += 1
+            print("\n -- gio hang --", count , i)
         
-        recommend = recommend_products( itemsCartStr, suggest)
+        recommend = recommend_products(itemsCartStr, suggest)
         print("\n -- Recommend -- ", recommend , "\n")
+        if len(recommend) == 0:
+            json_String = json_util.dumps({"message": "Recommend not found", "status": 404})
+            return JsonResponse(json_String, safe=False)
 
-        json= json_util.dumps({'itemHistoryOrderProductId': 123})
+        recommendArr = []
+        for i in recommend:
+            recommendArr.append(i[0])
+        
+        # print("\n -- recommendArr -- ", recommendArr , "\n")
+        products_collection = get_products_collection()
 
-        return JsonResponse(json, safe=False)
+        cursor_products = []
+        for i in recommendArr:
+            print("-- id san pham  -- ", i , "\n")
+            findProduct = products_collection.find_one({'_id': ObjectId(i)})
+            cursor_products.append(findProduct)
+        
+        recommend_products_data = []
+        for i in cursor_products:
+            print("\n -- du lieu san pham -- ", i , "\n")
+            recommend_products_data.append(i)
+            
+        print("\n -- du lieu tra ve client -- ", recommend_products_data , "\n")
+        
+        json_String = json_util.dumps({'data': recommend_products_data, "status": 200})
+
+        return JsonResponse(json_String, safe=False)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
    
@@ -92,16 +117,16 @@ def apply_prefixspan(data):
     num_patterns = len(data)  # Số lượng mẫu trong dữ liệu
     min_support = int(num_patterns * 0.3)  # Tính toán ngưỡng support là 50% của số lượng mẫu
     
-    print("num_patterns", num_patterns)
-    print("min_support", min_support)
+    print("-- tong so luong mau --", num_patterns)
+    print("-- Nguong support cua tong so mau", min_support)
     # Lấy tất cả các pattern phổ biến
     all_patterns = ps.frequent(min_support)
 
-    print("all_patterns", all_patterns)
+    print("-- Cac mau pho bien --", all_patterns)
 
     # Sắp xếp giảm dần
     sorted_patterns = sorted(all_patterns, key=lambda x: x[0], reverse=True)
-    print("sorted_patterns", sorted_patterns)
+    print("-- Sap xep lai cac mau pho bien -- ", sorted_patterns)
     
     return sorted_patterns
 
@@ -121,22 +146,32 @@ def show_patterns(request):
 # Hàm gợi ý sản phẩm dựa trên các mẫu phổ biến và giỏ hàng hiện tại
 def recommend_products(current_cart, patterns):
     recommendations = []
-    
-    print("\ncurrent_cart", current_cart)
-    print("patterns", patterns)
+
+    print("-- Gio hang hien tai --", current_cart)
+    print("-- tong so luong mau --", patterns)
     for support, pattern in patterns:
-        print("support", support , "pattern", pattern)
-        print("len(pattern)", len(pattern))
+        print("-- tan so xuat hien --", support , "-- mau --", pattern, "-- chieu dai cua mot mau --", len(pattern), "-- chieu dai cua tong so mau --", len(patterns))
         # Kiểm tra xem mẫu có thỏa mãn điều kiện để đưa ra gợi ý không
         if len(pattern) > 1 and all(item in current_cart for item in pattern[:-1]) and pattern[-1] not in current_cart:
-            print("recommendations.append", pattern[-1])
-            recommendations.append(pattern[-1])
+            print("-- them du lieu thoa yeu cau --", pattern[-1])
+            recommendations.append((pattern[-1], pattern))
+
+    print("-- de nghi cho gio hang --", recommendations)
+    unique_recommendations = []
+    for item, pattern in recommendations:
+        if item not in [x[0] for x in unique_recommendations]:
+            unique_recommendations.append((item, pattern))
+
+    
+    recommended_product = unique_recommendations[:2]
+
 
     # Loại bỏ các sản phẩm trùng lặp trong recommendations
-    unique_recommendations = list(set(recommendations))[:3]
-    unique_recommendations.sort()  # Sắp xếp các sản phẩm theo thứ tự từ điển (nếu cần)
+    # unique_recommendations = list(set(recommendations))[:3]
+    # unique_recommendations.sort()  
+    print("-- ket qua de nghi --",recommended_product)
 
-    return unique_recommendations
+    return recommended_product
 
 # View để gợi ý các sản phẩm dựa trên lịch sử mua hàng và giỏ hàng hiện tại
 def suggest_products(request):
