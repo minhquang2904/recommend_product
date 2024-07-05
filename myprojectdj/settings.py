@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://my-store-ten-sand.vercel.app"
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
