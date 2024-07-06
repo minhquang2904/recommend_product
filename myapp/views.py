@@ -43,7 +43,7 @@ def get_data_history_order(request):
             recommend = recommend_products(itemsCartStr, suggest)
 
             cached_recommendation = recommend
-            cache.set(cache_key, cached_recommendation, timeout=60*2)
+            cache.set(cache_key, cached_recommendation, timeout=60*60)
             print("\n -- set cache ----- ", cached_recommendation , "\n")
         else: 
             recommend = cached_recommendation
