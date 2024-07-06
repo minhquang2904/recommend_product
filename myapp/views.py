@@ -17,44 +17,46 @@ def get_data_history_order(request):
         userId = request.GET.get('userId')
         
         if not userId:
-            return JsonResponse({'UserId': 'UserId not found'}, status=200)
+            json_String = json_util.dumps({"message": "UserId not found", "status": 404})
+            return JsonResponse(json_String, safe=False)
        
         cart_collection = get_cart_collection()
         cursor_cart = cart_collection.find_one({'userId': ObjectId(userId)})
         
         if not cursor_cart:
-            return JsonResponse({'cart': 'Cart not found'}, status=200)
+            json_String = json_util.dumps({"message": "Cart not found", "status": 404})
+            return JsonResponse(json_String, safe=False)
 
         itemsCart = cursor_cart['items']
         itemProductId = [item['productId'] for item in itemsCart]
         itemsCartStr = [str(i) for i in itemProductId]
 
         cache_key = f"user_transaction_history_{userId}"
-        cached_recommendation  = cache.get(cache_key)
-        print("\n -- transaction_history -- ", cached_recommendation, "\n")
+        cached_suggest  = cache.get(cache_key)
 
-        if not cached_recommendation: 
+        if not cached_suggest: 
             history_orders_collection = get_history_orders_collection()
             cursor_history_order = history_orders_collection.find({'status': 'confirm'}, {'items.productId': 1, '_id': 0})
             itemHistoryOrder = [doc['items'] for doc in cursor_history_order]
 
             extracted_ids = extract_ids(itemHistoryOrder)       
             suggest = apply_prefixspan(extracted_ids)
-            recommend = recommend_products(itemsCartStr, suggest)
 
-            cached_recommendation = recommend
-            cache.set(cache_key, cached_recommendation, timeout=60*60)
-            print("\n -- set cache ----- ", cached_recommendation , "\n")
+            cached_suggest = suggest
+            cache.set(cache_key, cached_suggest, timeout=60*60)
         else: 
-            recommend = cached_recommendation
-            print("\n -- get cache ----- ", recommend , "\n")
+            suggest = cached_suggest
         
+        recommend = recommend_products(itemsCartStr, suggest)
+
         if len(recommend) == 0:
             json_String = json_util.dumps({"message": "Recommend not found", "status": 404})
             return JsonResponse(json_String, safe=False)
 
         recommendArr = [i[0] for i in recommend]
         products_collection = get_products_collection()
+        
+        print("\n -- recommendArr -- ", recommendArr, "\n")
 
         cursor_products = []
         for i in recommendArr:
