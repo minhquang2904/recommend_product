@@ -20,12 +20,12 @@ def extract_ids(nested_list):
 def apply_prefixspan(data):
     ps = PrefixSpan(data)
     num_patterns = len(data)  
-    min_support = int(num_patterns * 0.2)
+    min_support = int(num_patterns * 0.10)
 
     all_patterns = ps.frequent(min_support)
 
     sorted_patterns = sorted(all_patterns, key=lambda x: x[0], reverse=True)
-
+    print("\n -- sorted_patterns -- ", sorted_patterns, "\n")
     return sorted_patterns
 
 def recommend_products(current_cart, patterns):

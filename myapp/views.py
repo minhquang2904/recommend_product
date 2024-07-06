@@ -31,7 +31,7 @@ def get_data_history_order(request):
         itemProductId = [item['productId'] for item in itemsCart]
         itemsCartStr = [str(i) for i in itemProductId]
 
-        cache_key = f"user_transaction_history_{userId}"
+        cache_key = "user_transaction_history"
         cached_suggest  = cache.get(cache_key)
 
         if not cached_suggest: 
@@ -55,7 +55,7 @@ def get_data_history_order(request):
 
         recommendArr = [i[0] for i in recommend]
         products_collection = get_products_collection()
-        
+
         print("\n -- recommendArr -- ", recommendArr, "\n")
 
         cursor_products = []
