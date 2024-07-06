@@ -17,7 +17,7 @@ def extract_ids(nested_list):
 
     return result
 
-def apply_prefixspan(data):
+def apply_prefixSpan(data):
     ps = PrefixSpan(data)
     num_patterns = len(data)  
     min_support = int(num_patterns * 0.10)

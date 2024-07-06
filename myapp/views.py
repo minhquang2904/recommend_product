@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.core.serializers.json import DjangoJSONEncoder
 from .db_connect import get_products_collection, get_history_orders_collection, get_cart_collection
-from .helpers import extract_ids, apply_prefixspan, recommend_products
+from .helpers import extract_ids, apply_prefixSpan, recommend_products
 
 def index(request):
     return HttpResponse("Welcome to my Django API")
@@ -40,7 +40,7 @@ def get_data_history_order(request):
             itemHistoryOrder = [doc['items'] for doc in cursor_history_order]
 
             extracted_ids = extract_ids(itemHistoryOrder)       
-            suggest = apply_prefixspan(extracted_ids)
+            suggest = apply_prefixSpan(extracted_ids)
 
             cached_suggest = suggest
             cache.set(cache_key, cached_suggest, timeout=60*60)
@@ -56,7 +56,7 @@ def get_data_history_order(request):
         recommendArr = [i[0] for i in recommend]
         products_collection = get_products_collection()
 
-        print("\n -- recommendArr -- ", recommendArr, "\n")
+        # print("\n -- recommendArr -- ", recommendArr, "\n")
 
         cursor_products = []
         for i in recommendArr:
