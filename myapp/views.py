@@ -40,7 +40,7 @@ def get_data_history_order(request):
             itemHistoryOrder = [doc['items'] for doc in cursor_history_order]
 
             extracted_ids = extract_ids(itemHistoryOrder)       
-            suggest = apply_prefixSpan(extracted_ids)
+            suggest = apply_prefixSpan(extracted_ids, 0.1)
 
             cached_suggest = suggest
             cache.set(cache_key, cached_suggest, timeout=60*60)
@@ -72,3 +72,58 @@ def get_data_history_order(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+def get_related_product_user(request):
+    try:
+        userId = request.GET.get('userId')
+
+        if not userId:
+            json_String = json_util.dumps({"message": "UserId not found", "status": 404})
+            return JsonResponse(json_String, safe=False)
+       
+        cache_key = f'related_product_{userId}'
+        cached_suggest  = cache.get(cache_key)
+
+        products_collection = get_products_collection()
+        if not cached_suggest:
+            history_orders_collection = get_history_orders_collection()
+            cursor_history_order = history_orders_collection.find({'userId': ObjectId(userId), 'status': 'confirm'}, {'items.productId': 1, '_id': 0})
+            itemHistoryOrder = [doc['items'] for doc in cursor_history_order]
+
+            extracted_ids = extract_ids(itemHistoryOrder)       
+            suggest = apply_prefixSpan(extracted_ids, 0)
+            
+            if len(suggest) == 0:
+                json_String = json_util.dumps({"message": "Recommend not found", "status": 404})
+                return JsonResponse(json_String, safe=False)
+            
+            copySuggest = suggest[:2]
+            recommendArr = [i[1] for i in copySuggest]
+
+            cursor_products = []
+            for i in recommendArr:
+                findProduct = products_collection.find_one({'_id': ObjectId(i[0])},{'categories': 1, 'sub_categories': 1})
+                cursor_products.append(findProduct)
+            
+            cached_suggest = cursor_products
+            cache.set(cache_key, cached_suggest, timeout=60*15)
+        else:
+            cursor_products = cached_suggest
+
+
+        suggest_products_data = [i['sub_categories'] for i in cursor_products]
+        setSuggest =list(set(suggest_products_data))
+
+        getProductSuggest = []
+        if len(setSuggest) == 1:
+            getProduct = products_collection.find({'sub_categories': setSuggest[0]}).limit(4)
+            getProductSuggest.extend(getProduct)
+
+        if len(setSuggest) == 2:
+            for i in suggest_products_data:
+                getProduct = products_collection.find({'sub_categories': i}).sort('soldCount', -1).limit(2)
+                getProductSuggest.extend(getProduct)
+
+        json_String = json_util.dumps({'data': getProductSuggest, "status": 200})
+        return JsonResponse(json_String, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
