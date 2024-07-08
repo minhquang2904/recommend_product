@@ -12,6 +12,17 @@ def index(request):
     return HttpResponse("Welcome to my Django API")
 
 
+def refresh_cache_recommend_cart():
+    cache_key = "recommend_cart"
+    history_orders_collection = get_history_orders_collection()
+    cursor_history_order = history_orders_collection.find({'status': 'confirm'}, {'items.productId': 1, '_id': 0})
+    itemHistoryOrder = [doc['items'] for doc in cursor_history_order]
+    extracted_ids = extract_ids(itemHistoryOrder)
+    suggest = apply_prefixSpan(extracted_ids, 0.1)
+    cache.set(cache_key, suggest, timeout=60*60)
+    return suggest
+
+
 def get_data_history_order(request):
     try:
         userId = request.GET.get('userId')
@@ -35,18 +46,10 @@ def get_data_history_order(request):
         cached_suggest  = cache.get(cache_key)
 
         if not cached_suggest: 
-            history_orders_collection = get_history_orders_collection()
-            cursor_history_order = history_orders_collection.find({'status': 'confirm'}, {'items.productId': 1, '_id': 0})
-            itemHistoryOrder = [doc['items'] for doc in cursor_history_order]
-
-            extracted_ids = extract_ids(itemHistoryOrder)       
-            suggest = apply_prefixSpan(extracted_ids, 0.1)
-
-            cached_suggest = suggest
-            cache.set(cache_key, cached_suggest, timeout=60*60)
+            suggest = refresh_cache_recommend_cart()
         else: 
             suggest = cached_suggest
-        
+
         recommend = recommend_products(itemsCartStr, suggest)
 
         if len(recommend) == 0:
