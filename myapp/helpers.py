@@ -31,6 +31,7 @@ def apply_prefixSpan(data, min_support):
 def recommend_products(current_cart, patterns):
 
     recommendations = []
+
     for support, pattern in patterns:
         if len(pattern) > 1 and all(item in current_cart for item in pattern[:-1]) and pattern[-1] not in current_cart:
             recommendations.append((pattern[-1], pattern))

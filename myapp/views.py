@@ -9,7 +9,7 @@ from .db_connect import get_products_collection, get_history_orders_collection, 
 from .helpers import extract_ids, apply_prefixSpan, recommend_products
 
 def index(request):
-    return HttpResponse("Welcome to my Django API")
+    return HttpResponse("Welcome to my Django API recommendation system")
 
 
 def refresh_cache_recommend_cart():
@@ -58,8 +58,6 @@ def get_data_history_order(request):
 
         recommendArr = [i[0] for i in recommend]
         products_collection = get_products_collection()
-
-        # print("\n -- recommendArr -- ", recommendArr, "\n")
 
         cursor_products = []
         for i in recommendArr:
