@@ -1,10 +1,17 @@
-# myapp/db_connect.py
+import os
 import pymongo
 from pymongo import MongoClient
+from pathlib import Path
+from dotenv import load_dotenv
+
+env_path = Path('.') / '.env.local'
+
+load_dotenv(dotenv_path=env_path)
 
 
 def get_database():
-    client = MongoClient("mongodb+srv://minhquang29042001:daVCWUZcsTOOCyEY@store.goz72zm.mongodb.net/store")
+    print(os.getenv('MONGO_URL'))
+    client = MongoClient(os.getenv('MONGO_URL'))
     return client['store']
 
 def get_products_collection():
