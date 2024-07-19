@@ -1,6 +1,12 @@
 import pymongo
 from pymongo import MongoClient
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+env_path = Path('.') / '.env.local'
+
+load_dotenv(dotenv_path=env_path)
 
 def get_database():
     mongo_url = os.getenv('MONGO_URL')
