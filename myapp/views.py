@@ -76,7 +76,6 @@ def get_data_history_order(request):
 def get_related_product_user(request):
     try:
         userId = request.GET.get('userId')
-
         if not userId:
             json_String = json_util.dumps({"message": "UserId not found", "status": 404})
             return JsonResponse(json_String, safe=False)

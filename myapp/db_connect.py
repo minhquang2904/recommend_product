@@ -10,8 +10,9 @@ load_dotenv(dotenv_path=env_path)
 
 
 def get_database():
-    print(os.getenv('MONGO_URL'))
-    client = MongoClient(os.getenv('MONGO_URL'))
+    mongo_url = os.getenv('MONGO_URL')
+    print(mongo_url)
+    client = MongoClient('mongodb+srv://minhquang29042001:daVCWUZcsTOOCyEY@store.goz72zm.mongodb.net/store')
     return client['store']
 
 def get_products_collection():
