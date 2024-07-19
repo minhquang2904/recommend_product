@@ -1,7 +1,8 @@
-# myapp/db_connect.py
 import pymongo
 from pymongo import MongoClient
-
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
 def get_database():
     client = MongoClient("mongodb+srv://minhquang29042001:daVCWUZcsTOOCyEY@store.goz72zm.mongodb.net/store")
